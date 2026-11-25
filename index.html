@@ -211,8 +211,11 @@
 /* ===== 部署設定：把 Google Apps Script 部署後的網址貼在這裡 ===== */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzYzWTTnyns6M8dYdCntXYHz6LSBf7dX6KedrcJuitGTdJihhJBtQ9ZWMITkfRsyAvS/exec';
 const SAVING_ON = /^https:\/\/script\.google\.com\//.test(SHEET_URL);
-/* 測試模式：網址加 #test、#c1、#c2、#c3 會顯示研究者設定，資料會標記 is_test = 1 */
-const TEST_MODE = /^#(test|c[1-3])$/.test(location.hash);
+/* 網址加 #c1 / #c2 / #c3：指定組別的正式資料（is_test = 0）
+   網址加 #test：測試模式，顯示研究者設定，資料標記 is_test = 1
+   不加任何東西：正式資料，依 Google Sheet 人數平均分組 */
+const TEST_MODE = location.hash === '#test';
+const FORCED_COND = +((location.hash.match(/^#c([1-3])$/)||[])[1] || 0);
 const MECH = 'tf2t';                 // Tit-for-Two-Tats：受試者連續兩回合背叛，對手才背叛
 const N_ROUNDS = 8;
 const START_COINS = 40;
@@ -458,7 +461,6 @@ function radios(id, label, options){
 
 /* ===================== 1. 開始（含研究者設定） ===================== */
 function screenStart(){
-  const hashCond = (location.hash.match(/^#c([1-3])$/)||[])[1];
   render(`
     <h1>Decision-Making Study</h1>
     <h2>Consent</h2>
@@ -468,7 +470,7 @@ function screenStart(){
     <div class="actions"><button class="btn" id="go" disabled>Begin</button></div>
 
     ${TEST_MODE?`<details class="researcher" open>
-      <summary>研究者設定（測試模式：只有網址加 #test 或 #c1–#c3 才會出現）</summary>
+      <summary>研究者設定（測試模式：只有網址加 #test 才會出現）</summary>
       <p class="small" style="margin-top:10px">資料儲存：<span class="tag">${SAVING_ON?'已連到 Google Sheet（測試資料會標記 is_test = 1）':'尚未設定 SHEET_URL，資料不會儲存'}</span></p>
       <p class="small" style="margin-top:10px">對手機制：<span class="tag">Tit-for-Two-Tats（受試者連續兩回合背叛，對手才背叛）</span></p>
       <p class="small">分派方式：
@@ -478,15 +480,16 @@ function screenStart(){
         </select></p>
       <p class="small" style="margin-bottom:4px">隨機分派包含的組別：</p>
       <div class="small">${[1,2,3].map(i=>`<label style="display:block"><input type="checkbox" class="poolBox" value="${i}" checked> ${i}. ${COND[i].label}</label>`).join('')}</div>
-      <p class="small muted" style="margin-top:8px">也可以在網址後加 #c1（人類）、#c2（中性 AI）、#c3（Alex）直接指定組別。</p>
+      <p class="small muted" style="margin-top:8px">網址加 #c1（人類）、#c2（中性 AI）、#c3（Alex）是「指定組別的正式資料」；要測試請用 #test 並在這裡選組別。</p>
     </details>`:''}`);
-  if(hashCond) document.getElementById('condSel').value = hashCond;
   document.getElementById('consent').onchange = e => { document.getElementById('go').disabled = !e.target.checked; };
   document.getElementById('go').onclick = async ()=>{
     document.getElementById('go').disabled = true;
     D.consent = true; D.is_test = TEST_MODE ? 1 : 0;
     const sel = document.getElementById('condSel');
-    if(TEST_MODE && sel && sel.value!=='rand'){
+    if(FORCED_COND){
+      D.condition = FORCED_COND; D.condition_assigned_by = 'link';
+    } else if(TEST_MODE && sel && sel.value!=='rand'){
       D.condition = +sel.value; D.condition_assigned_by = 'researcher';
     } else {
       let pool = TEST_MODE ? [...document.querySelectorAll('.poolBox:checked')].map(x=>+x.value) : [1,2,3];
