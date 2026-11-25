@@ -201,6 +201,20 @@
   .flip .val{font-family:Fredoka,inherit;font-weight:700;font-size:1.3rem}
   .spacer{flex:1}
   @media (max-width:640px){.cols{grid-template-columns:1fr}.col{min-height:0}}
+
+  .goalbox{background:#fff8e1;border:1.5px solid #ffd54a;border-radius:12px;padding:14px 16px;margin:6px 0 18px}
+  .goalbox .gt{font-family:Fredoka,inherit;font-weight:700;letter-spacing:.5px;color:#8a6100;margin-bottom:4px;text-transform:uppercase;font-size:.85rem}
+  .opts2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .optcard{border:1.5px solid #d9dce6;border-radius:12px;padding:12px 14px;background:#fff}
+  .optcard .ot{font-family:Fredoka,inherit;font-weight:700;font-size:1.1rem;color:#1f2d45}
+  .optcard .od{font-size:.9rem;color:var(--muted);margin:2px 0 6px}
+  .optcard ul{margin:0;padding-left:18px;font-size:.92rem}
+  .paytable td{vertical-align:middle}
+  .pay{display:flex;flex-direction:column;gap:2px;align-items:center;font-variant-numeric:tabular-nums}
+  .pay .who-l{display:inline-block;min-width:54px;text-align:right;color:var(--muted);font-size:.85rem;margin-right:4px}
+  .steps{margin:0 0 6px;padding-left:22px}
+  .steps li{margin:4px 0}
+  @media (max-width:560px){.opts2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -505,26 +519,48 @@ function screenStart(){
 
 /* ===================== 2. 遊戲說明＋理解檢查 ===================== */
 function screenInstructions(err=false){
+  const cell=(you,partner)=>`<div class="pay"><div><span class="who-l">You</span> ${you?'−'+you:'0'}</div><div class="muted"><span class="who-l">Partner</span> ${partner?'−'+partner:'0'}</div></div>`;
   render(`
     <h1>How the game works</h1>
-    <p>You will play several rounds of a decision game with the same partner. In each round, you and your partner each choose <b>Cooperate</b> or <b>Defect</b> at the same time, without knowing what the other will choose.</p>
-    <p>You start with <b>${START_COINS} coins</b>. In each round, you may lose some coins depending on both choices:</p>
-    <table class="matrix">
+
+    <div class="goalbox">
+      <div class="gt">Your goal</div>
+      <p style="margin:0">You start with <b>${START_COINS} coins</b>. Try to <b>keep as many of your own coins as possible</b> by the end of the game.</p>    </div>
+
+    <h2>Each round, you choose one of two moves</h2>
+    <div class="opts2">
+      <div class="optcard"><div class="ot">COOPERATE</div><div class="od">Work with your partner.</div>
+        <ul><li>If your partner also cooperates: <b>you lose 2</b></li><li>If your partner defects: <b>you lose 5</b></li></ul></div>
+      <div class="optcard"><div class="ot">DEFECT</div><div class="od">Look out for yourself, at your partner's expense.</div>
+        <ul><li>If your partner cooperates: <b>you lose 0</b></li><li>If your partner also defects: <b>you lose 4</b></li></ul></div>
+    </div>
+    <p class="small muted">Your partner makes the same kind of choice, with the same rules.</p>
+
+    <h2>All four outcomes</h2>
+    <table class="matrix paytable">
       <tr><th></th><th>Partner cooperates</th><th>Partner defects</th></tr>
-      <tr><th>You cooperate</th><td>You lose 2 &nbsp;|&nbsp; Partner loses 2</td><td>You lose 5 &nbsp;|&nbsp; Partner loses 0</td></tr>
-      <tr><th>You defect</th><td>You lose 0 &nbsp;|&nbsp; Partner loses 5</td><td>You lose 4 &nbsp;|&nbsp; Partner loses 4</td></tr>
+      <tr><th>You cooperate</th><td>${cell(2,2)}</td><td>${cell(5,0)}</td></tr>
+      <tr><th>You defect</th><td>${cell(0,5)}</td><td>${cell(4,4)}</td></tr>
     </table>
-    <p>Your partner will make its decisions based on how the game unfolds. After each round, you will see your partner's choice and how many coins you have left.</p>
-    <p><b>Your goal is to keep as many coins as possible by the end of the game.</b></p>
+
+    <h2>What happens in each round</h2>
+    <ol class="steps">
+      <li>You guess how likely your partner is to cooperate.</li>
+      <li>You and your partner choose <b>at the same time</b>. Neither of you sees the other's choice before choosing.</li>
+      <li>Both moves are revealed, and coins are taken away.</li>
+    </ol>
+    <p class="small muted">You will play several rounds with the same partner.</p>
+
     <h2>Quick check</h2>
-    ${radios('cq1','1. If you cooperate and your partner defects, how many coins do you lose?',[[0,'0'],[2,'2'],[4,'4'],[5,'5']])}
-    ${radios('cq2','2. If you both cooperate, how many coins do you lose?',[[0,'0'],[2,'2'],[4,'4'],[5,'5']])}
-    ${err?'<div class="err">At least one answer is incorrect. Please check the table and try again.</div>':''}
+    ${radios('cq3','1. What is your goal in this game?',[['own','Keep as many of my own coins as possible'],['beat','End with more coins than my partner'],['hurt','Make my partner lose as many coins as possible']])}
+    ${radios('cq1','2. If you cooperate and your partner defects, how many coins do you lose?',[[0,'0'],[2,'2'],[4,'4'],[5,'5']])}
+    ${radios('cq2','3. If you both cooperate, how many coins do you lose?',[[0,'0'],[2,'2'],[4,'4'],[5,'5']])}
+    ${err?'<div class="err">At least one answer is incorrect. Please read the rules above and try again.</div>':''}
     <div class="actions"><button class="btn" id="go">Continue</button></div>`);
   hookOpts();
   document.getElementById('go').onclick = ()=>{
     D.comprehension_attempts++;
-    if(val('cq1')==='5' && val('cq2')==='2') screenIntro();
+    if(val('cq3')==='own' && val('cq1')==='5' && val('cq2')==='2') screenIntro();
     else screenInstructions(true);
   };
 }
