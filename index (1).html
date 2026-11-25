@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision-Making Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f6f4; --card:#ffffff; --ink:#1d1d1f; --muted:#6b6b70; --line:#e2e2df;
+    --accent:#2f5d8a; --accent-ink:#ffffff; --soft:#eef3f8; --warn:#9a3b2f; --warn-bg:#fbefec;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang TC","Microsoft JhengHei",sans-serif;
+    font-size:16px;line-height:1.55}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 18px 60px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px}
+  h1{font-size:1.45rem;margin:0 0 14px;letter-spacing:-.01em}
+  h2{font-size:1.1rem;margin:22px 0 10px}
+  p{margin:0 0 12px}
+  .muted{color:var(--muted)}
+  .small{font-size:.88rem}
+  .btn{appearance:none;border:0;border-radius:10px;background:var(--accent);color:var(--accent-ink);
+    font:inherit;font-weight:600;padding:12px 22px;cursor:pointer}
+  .btn[disabled]{opacity:.35;cursor:not-allowed}
+  .btn.secondary{background:#e9e9e6;color:var(--ink)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .actions{margin-top:22px;display:flex;justify-content:flex-end;gap:10px}
+  .err{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 12px;margin-top:14px;font-size:.93rem}
+  table.matrix{border-collapse:collapse;margin:8px 0 16px;width:100%;font-size:.95rem}
+  table.matrix th,table.matrix td{border:1px solid var(--line);padding:10px;text-align:center}
+  table.matrix th{background:#fafaf8;font-weight:600}
+  .q{margin:18px 0}
+  .q-label{font-weight:600;margin-bottom:8px}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt{border:1px solid var(--line);border-radius:9px;padding:8px 14px;cursor:pointer;background:#fff;user-select:none}
+  .opt input{margin-right:6px}
+  .opt.sel{border-color:var(--accent);background:var(--soft)}
+  .likert{margin:20px 0}
+  .likert .scale{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+  .likert .scale label{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--line);
+    border-radius:8px;padding:8px 0;cursor:pointer;font-size:.9rem}
+  .likert .scale label.sel{border-color:var(--accent);background:var(--soft)}
+  .likert .scale input{margin:0}
+  .anchors{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-top:4px}
+  .partner-tag{display:flex;align-items:center;gap:10px;background:#fafaf8;border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;margin-bottom:18px;font-size:.93rem}
+  .round-title{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .slider-box{background:#fafaf8;border:1px solid var(--line);border-radius:10px;padding:16px}
+  input[type=range]{width:100%}
+  .slider-val{font-size:1.6rem;font-weight:700;text-align:center;margin:6px 0}
+  .slider-val.untouched{color:var(--muted);font-size:1rem;font-weight:500}
+  .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+  .choice{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:18px 10px;font:inherit;
+    font-size:1.05rem;font-weight:600;cursor:pointer;color:var(--ink)}
+  .choice:hover:not([disabled]){border-color:var(--accent)}
+  .choice[disabled]{opacity:.35;cursor:not-allowed}
+  .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;
+    animation:spin 1s linear infinite;margin:18px auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .center{text-align:center}
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+  .result-box{border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center}
+  .result-box .lab{font-size:.85rem;color:var(--muted)}
+  .result-box .val{font-size:1.15rem;font-weight:700;margin-top:4px}
+  .bubble-row{display:flex;gap:12px;align-items:flex-start;margin:14px 0}
+  .bubble{background:var(--soft);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:1rem}
+  .total{background:#fafaf8;border-radius:10px;padding:12px;text-align:center;font-size:.95rem}
+  details.researcher{margin-top:22px;border:1px dashed #c9c9c4;border-radius:10px;padding:10px 14px;background:#fcfcfa}
+  details.researcher summary{cursor:pointer;font-size:.88rem;color:var(--muted)}
+  select,input[type=number],textarea,input[type=text]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  textarea{width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;min-height:140px}
+  table.summary{border-collapse:collapse;width:100%;font-size:.88rem;margin:10px 0}
+  table.summary th,table.summary td{border:1px solid var(--line);padding:6px 8px;text-align:center}
+  table.summary th{background:#fafaf8}
+  .tag{display:inline-block;background:var(--soft);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:.8rem;font-weight:600}
+
+  /* ---- 金幣血條 ---- */
+  .coins{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:14px 0;background:#fff}
+  .coins.compact{padding:10px 12px;margin:0 0 16px}
+  .hp-row{display:grid;grid-template-columns:96px 1fr 64px;align-items:center;gap:10px;margin:6px 0;position:relative}
+  .hp-name{font-size:.86rem;color:var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hp-name i{width:10px;height:10px;border-radius:3px;flex:none}
+  .hp{position:relative;height:14px;background:#ecebe7;border-radius:7px;overflow:hidden}
+  .hp .ghost,.hp .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+  .hp .ghost{background:#f1a58f;transition:width 1.1s ease .55s}
+  .hp .fill{transition:width .7s cubic-bezier(.3,.7,.3,1)}
+  .hp-num{font-variant-numeric:tabular-nums;font-size:.9rem;text-align:right;color:var(--ink)}
+  .hp-num b{font-size:1rem}
+  .float-loss{position:absolute;right:68px;top:-6px;font-weight:700;font-size:.95rem;color:#c2412d;opacity:0;pointer-events:none}
+  .float-loss.go{animation:floatUp 1.4s ease-out .25s forwards}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(6px)}20%{opacity:1}100%{opacity:0;transform:translateY(-18px)}}
+  .spark{margin-top:8px}
+  .spark-cap{font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;margin-top:2px}
+  /* ---- 生成式 AI 風格（只有 Alex 組） ---- */
+  .ava{flex:none;line-height:0;animation:floaty 3.2s ease-in-out infinite;border-radius:50%}
+  .ava.thinking{animation:floaty 3.2s ease-in-out infinite, glow 1.6s ease-in-out infinite}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(63,111,163,.0)}50%{box-shadow:0 0 0 6px rgba(63,111,163,.16)}}
+  .chat-bubble{background:var(--soft);border-radius:4px 16px 16px 16px;padding:12px 15px;font-size:1rem;max-width:100%;min-height:22px}
+  .dots{display:inline-flex;gap:5px;align-items:center;height:18px;vertical-align:middle}
+  .dots span{width:7px;height:7px;border-radius:50%;background:#3f6fa3;opacity:.35;animation:dot 1.2s ease-in-out infinite}
+  .dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+  @keyframes dot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+  .shimmer{background:linear-gradient(90deg,#6b7280 0%,#6b7280 38%,#111827 50%,#6b7280 62%,#6b7280 100%);background-size:250% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shim 1.8s linear infinite;font-size:.95rem}
+  @keyframes shim{0%{background-position:100% 0}100%{background-position:-50% 0}}
+  .status-line{display:flex;align-items:center;gap:10px;margin-top:2px;min-height:22px}
+  .phrase{transition:opacity .25s}
+  details.thought{margin:0 0 6px}
+  details.thought summary{list-style:none;cursor:pointer;font-size:.85rem;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+  details.thought summary::-webkit-details-marker{display:none}
+  details.thought summary::after{content:"›";transform:rotate(90deg);display:inline-block;transition:transform .2s}
+  details.thought[open] summary::after{transform:rotate(270deg)}
+  details.thought .tbody{font-size:.86rem;color:var(--muted);border-left:2px solid #d9dee6;padding:4px 0 4px 10px;margin-top:6px}
+  .cursor{display:inline-block;width:7px;height:1.05em;background:#3f6fa3;margin-left:2px;vertical-align:text-bottom;animation:blink .9s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .wfade{opacity:0;animation:wf .18s forwards}
+  @keyframes wf{to{opacity:1}}
+  @media (prefers-reduced-motion: reduce){.ava,.ava.thinking,.dots span,.shimmer,.cursor{animation:none}.shimmer{color:#5b6270;-webkit-text-fill-color:#5b6270}}
+
+  /* ===== 遊戲畫面（三組相同） ===== */
+  .arena{background:linear-gradient(160deg,#1f3150 0%,#2c4470 55%,#3a3f78 100%);border-radius:16px;padding:14px;color:#fff;margin:0 0 16px;box-shadow:0 6px 18px rgba(31,49,80,.25)}
+  .arena-top{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
+  .pcard{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px}
+  .pcard .who{display:flex;align-items:center;gap:8px;font-family:Fredoka,inherit;font-weight:600;font-size:1rem;letter-spacing:.2px}
+  .pcard .who .ic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14);flex:none;line-height:0;overflow:hidden}
+  .pcard.right .who{flex-direction:row-reverse;text-align:right}
+  .coinline{display:flex;align-items:center;gap:6px;margin:8px 0 6px;font-family:Fredoka,inherit;font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .pcard.right .coinline{justify-content:flex-end}
+  .coinline small{font-size:.8rem;opacity:.65;font-weight:500}
+  .gbar{position:relative;height:12px;background:rgba(255,255,255,.16);border-radius:6px;overflow:hidden}
+  .gbar .ghost,.gbar .fill{position:absolute;top:0;bottom:0;left:0;border-radius:6px}
+  .pcard.right .gbar .ghost,.pcard.right .gbar .fill{left:auto;right:0}
+  .gbar .ghost{background:#ff9f7f;transition:width 1.1s ease .55s}
+  .gbar .fill{background:linear-gradient(90deg,#ffd54a,#ffb300);transition:width .7s cubic-bezier(.3,.7,.3,1)}
+  .vs{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 4px;min-width:76px}
+  .vs .rlab{font-family:Fredoka,inherit;font-size:.72rem;letter-spacing:2px;opacity:.75}
+  .vs .rnum{font-family:Fredoka,inherit;font-size:2rem;font-weight:700;line-height:1}
+  .vs .vsb{margin-top:6px;font-family:Fredoka,inherit;font-weight:700;font-size:.8rem;background:#ffcf33;color:#3a2a00;border-radius:999px;padding:2px 9px}
+  .pop{position:absolute;font-family:Fredoka,inherit;font-weight:700;font-size:1.15rem;color:#ffb4a0;opacity:0;pointer-events:none}
+  .pop.go{animation:popUp 1.5s ease-out .3s forwards}
+  @keyframes popUp{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-22px) scale(1)}}
+  .coin-drop{position:absolute;width:14px;height:14px;opacity:0;pointer-events:none}
+  .coin-drop.go{animation:drop .9s ease-in forwards}
+  @keyframes drop{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),46px) rotate(220deg)}}
+  .arena-status{margin-top:10px;background:rgba(0,0,0,.18);border-radius:10px;padding:8px 12px;font-size:.92rem;display:flex;align-items:center;gap:10px;min-height:38px}
+  .mini-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;flex:none}
+  .gcards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+  .gcard{position:relative;border:2px solid #d9dce6;background:#fff;border-radius:14px;padding:20px 10px 16px;font:inherit;cursor:pointer;text-align:center;
+    box-shadow:0 4px 0 #d9dce6;transition:transform .08s, box-shadow .08s, border-color .15s}
+  .gcard .t{font-family:Fredoka,inherit;font-size:1.25rem;font-weight:700;letter-spacing:.5px;color:#1f2d45}
+  .gcard .d{font-size:.8rem;color:var(--muted);margin-top:4px}
+  .gcard:hover:not([disabled]){border-color:#4a6fb3;box-shadow:0 4px 0 #4a6fb3}
+  .gcard:active:not([disabled]){transform:translateY(3px);box-shadow:0 1px 0 #4a6fb3}
+  .gcard[disabled]{opacity:.4;cursor:not-allowed}
+  .reveal{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:2px 0 6px}
+  .rcard{perspective:600px}
+  .rcard .in{background:#fff;color:#1f2d45;border-radius:12px;padding:12px 8px;text-align:center;transform:rotateY(90deg);animation:flip .45s ease-out forwards}
+  .rcard.r2 .in{animation-delay:.35s}
+  .rcard .lab{font-size:.75rem;color:#6b7280}
+  .rcard .val{font-family:Fredoka,inherit;font-weight:700;font-size:1.15rem}
+  @keyframes flip{to{transform:rotateY(0)}}
+  .reveal .mid{font-family:Fredoka,inherit;font-weight:700;opacity:.7}
+  .chat{display:flex;flex-direction:column;gap:10px;margin:6px 0 4px}
+  .msg{display:flex;gap:10px;align-items:flex-start}
+  .msg.me{justify-content:flex-end}
+  .msg.me .ub{background:#2a5aa8;color:#fff;border-radius:16px 4px 16px 16px;padding:10px 14px;max-width:80%}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:2px}
+  .chip{border:1.5px solid #2a5aa8;color:#2a5aa8;background:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-size:.92rem;cursor:pointer}
+  .chip:hover{background:#eef3fb}
+  @media (max-width:520px){.arena-top{grid-template-columns:1fr 64px 1fr}.coinline{font-size:1.2rem}.pcard .who{font-size:.88rem}}
+
+  /* ===== 左右對戰版面 ===== */
+  .board{background:linear-gradient(160deg,#1f3150 0%,#2c4470 55%,#3a3f78 100%);border-radius:16px;padding:12px;color:#fff;box-shadow:0 6px 18px rgba(31,49,80,.25)}
+  .roundbar{text-align:center;margin:2px 0 10px}
+  .roundbar .rn{font-family:Fredoka,inherit;font-weight:700;font-size:1.35rem;letter-spacing:1px}
+  .roundbar .rs{font-size:.84rem;opacity:.8;margin-top:2px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
+  .col{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:330px}
+  .col .pcard{background:transparent;border:0;padding:0}
+  .col.you .who{flex-direction:row-reverse;text-align:right}
+  .col.you .coinline{justify-content:flex-end}
+  .col .light{background:#fff;color:var(--ink);border-radius:12px;padding:12px}
+  .col .light .q-label{font-size:.92rem;margin-bottom:6px}
+  .col .slider-box{padding:10px;background:#f7f8fb}
+  .facedown{border-radius:12px;padding:18px 10px;text-align:center;background:repeating-linear-gradient(45deg,#4a6fb3 0 10px,#5a7fc3 10px 20px);border:2px solid rgba(255,255,255,.35)}
+  .facedown .t{font-family:Fredoka,inherit;font-weight:700;font-size:1.05rem}
+  .facedown .s{font-size:.8rem;opacity:.85;margin-top:3px}
+  .facedown.wait{background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.35)}
+  .status{display:flex;align-items:center;gap:10px;font-size:.95rem;background:rgba(0,0,0,.18);border-radius:10px;padding:10px 12px}
+  .col .bubble-row{margin:0}
+  .col .chat-bubble{color:var(--ink)}
+  .col .shimmer{background:linear-gradient(90deg,#c9d3e6 0%,#c9d3e6 38%,#ffffff 50%,#c9d3e6 62%,#c9d3e6 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text}
+  .col .chat-bubble .shimmer{background:linear-gradient(90deg,#6b7280 0%,#6b7280 38%,#111827 50%,#6b7280 62%,#6b7280 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text}
+  .flip{perspective:700px}
+  .flip .in{background:#fff;color:#1f2d45;border-radius:12px;padding:16px 8px;text-align:center;transform:rotateY(90deg);animation:flip .45s ease-out forwards}
+  .flip .lab{font-size:.78rem;color:#6b7280}
+  .flip .val{font-family:Fredoka,inherit;font-weight:700;font-size:1.3rem}
+  .spacer{flex:1}
+  @media (max-width:640px){.cols{grid-template-columns:1fr}.col{min-height:0}}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card" id="app"></div></div>
+
+<script>
+/* ===================== 設定 ===================== */
+/* ===== 部署設定：把 Google Apps Script 部署後的網址貼在這裡 ===== */
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzYzWTTnyns6M8dYdCntXYHz6LSBf7dX6KedrcJuitGTdJihhJBtQ9ZWMITkfRsyAvS/exec';
+const SAVING_ON = /^https:\/\/script\.google\.com\//.test(SHEET_URL);
+/* 測試模式：網址加 #test、#c1、#c2、#c3 會顯示研究者設定，資料會標記 is_test = 1 */
+const TEST_MODE = /^#(test|c[1-3])$/.test(location.hash);
+const MECH = 'tf2t';                 // Tit-for-Two-Tats：受試者連續兩回合背叛，對手才背叛
+const N_ROUNDS = 8;
+const START_COINS = 40;
+const LOSS = {CC:[2,2], CD:[5,0], DC:[0,5], DD:[4,4]};  // key = 受試者 + 對手；值 = [受試者失去, 對手失去]（等價於 3/0/5/1）
+const THINK_MIN = 2000, THINK_MAX = 4000;               // 各組相同的等待時間（毫秒）
+const YOU_COLOR = '#2a78d6', PARTNER_COLOR = '#7a6fd0';
+/* Alex 的對話：每回合從題庫隨機挑選、不重複，內容中性，不承諾、不說服 */
+const ALEX_OPEN = [
+  "Okay, round {r}. I'm ready.", "Here we go, round {r}.", "Round {r}. Let me think about this one.",
+  "Ready for round {r} when you are.", "Alright, on to round {r}.", "Round {r} — I'm here.",
+  "Let's see how round {r} goes.", "Round {r}. Taking a moment to decide.", "I'm ready for round {r}.",
+  "Round {r} is up. Let's play.", "Okay, here's round {r}.", "Round {r}. Thinking it over."];
+const ALEX_PHRASES = ["Thinking…","Reviewing the game so far…","Weighing my options…","Considering this round…","Making my choice…"];
+const ALEX_THOUGHT = [
+  "Reviewed what happened in the earlier rounds and made a decision for this one.",
+  "Looked back over the game so far, then settled on a choice.",
+  "Considered the previous rounds before choosing.",
+  "Went over the earlier rounds and decided."];
+const ALEX_REPLY = {
+  CC:["We both chose to cooperate this round.","Same choice from both of us: cooperate.","Both of us went with cooperate this time.","Cooperate on both sides this round.","We matched — both cooperated."],
+  DC:["This round I cooperated, and you chose to defect.","I went with cooperate; you went with defect.","You defected this time, while I cooperated.","I picked cooperate, and you picked defect this round."],
+  CD:["This round I chose to defect, while you cooperated.","I went with defect this time; you went with cooperate.","You cooperated, and I defected this round.","I picked defect, and you picked cooperate this time."],
+  DD:["We both chose to defect this round.","Same choice from both of us: defect.","Both of us went with defect this time.","Defect on both sides this round."]};
+const ALEX_CLOSE = ["Let's see what happens.","Ready when you are.","Okay, noted.","Interesting round.","Got it.","Alright."];
+const _used = {};
+function pick(pool, key){
+  _used[key] = _used[key] || [];
+  let opts = pool.map((_,i)=>i).filter(i=>!_used[key].includes(i));
+  if(!opts.length){ _used[key]=[]; opts = pool.map((_,i)=>i); }
+  const i = opts[Math.floor(Math.random()*opts.length)]; _used[key].push(i); return pool[i];
+}
+function esc(t){ return String(t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+const ALEX_SVG = `<svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+  <defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7aa7d6"/><stop offset="1" stop-color="#3f6fa3"/></linearGradient></defs>
+  <circle cx="22" cy="22" r="21" fill="url(#ag)"/>
+  <circle cx="15.5" cy="19" r="2.6" fill="#fff"/><circle cx="28.5" cy="19" r="2.6" fill="#fff"/>
+  <path d="M14 27 Q22 34 30 27" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>`;
+
+const COND = {
+  1:{key:'human', label:'人類（另一位學生）', tag:'Your partner: another student',
+     intro:`<p>Your partner is <b>another student</b> who is taking part in the study at the same time.</p>
+            <p>You and your partner will make your decisions independently. Neither of you will learn the other's identity.</p>`,
+     who:'Your partner', thinking:'Waiting for your partner…'},
+  2:{key:'ai_neutral', label:'中性 AI', tag:'Your partner: an AI system',
+     intro:`<p>Your partner is <b>an AI system based on a large language model</b>.</p>`,
+     who:'The AI system', thinking:'The AI system is processing…'},
+  3:{key:'ai_anthro', label:'擬人化 AI（Alex）', tag:'Your partner: Alex, an AI system',
+     intro:`<p>Your partner is <b>Alex, an AI system</b>.</p>
+            <div class="chat" id="smalltalk"><div class="msg"><span class="ava">${ALEX_SVG.replace('width="44" height="44"','width="40" height="40"')}</span><div class="chat-bubble" id="greet"><span class="dots"><span></span><span></span><span></span></span></div></div></div>`,
+     who:'Alex', thinking:'Alex is thinking…'}
+};
+
+const TRUST_ITEMS = [
+  {id:'trust_abil1', dim:'ability',     text:'My partner is competent at playing this game.'},
+  {id:'trust_abil2', dim:'ability',     text:'My partner is capable of making smart decisions.'},
+  {id:'trust_bene1', dim:'benevolence', text:'My partner will take my interests into account.'},
+  {id:'trust_bene2', dim:'benevolence', text:'I trust my partner to cooperate with me.'}
+];
+
+/* ===================== 狀態 ===================== */
+const D = {
+  pid: 'P' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random()*1e4),
+  mechanism: MECH, condition: null, started_at: new Date().toISOString(),
+  comprehension_attempts: 0, pre: {}, rounds: [], post: {}, total: START_COINS, partner_total: START_COINS, hist:[{you:START_COINS, partner:START_COINS}]
+};
+const app = document.getElementById('app');
+const W = n => ({C:'Cooperate', D:'Defect'})[n];
+
+function render(html){ app.innerHTML = html; window.scrollTo(0,0); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function partnerTag(){
+  const c = COND[D.condition];
+  return `<div class="partner-tag">${D.condition===3?ALEX_SVG.replace('width="44" height="44"','width="30" height="30"'):''}<span>${c.tag}</span></div>`;
+}
+const COIN_SVG = `<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="#ffc83d" stroke="#e09b00" stroke-width="1.5"/><circle cx="11" cy="11" r="6.3" fill="none" stroke="#e09b00" stroke-width="1.2"/><path d="M11 7.5v7" stroke="#b97800" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+const ICON = {
+  you:`<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="9.5" r="4.6" fill="#cfe0ff"/><path d="M4.5 22c1.2-4.6 4.6-6.8 8.5-6.8s7.3 2.2 8.5 6.8" fill="#cfe0ff"/></svg>`,
+  1:`<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="9.5" r="4.6" fill="#e5d9ff"/><path d="M4.5 22c1.2-4.6 4.6-6.8 8.5-6.8s7.3 2.2 8.5 6.8" fill="#e5d9ff"/></svg>`,
+  2:`<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2.5" fill="none" stroke="#e5d9ff" stroke-width="1.8"/><rect x="9" y="9" width="6" height="6" rx="1" fill="#e5d9ff"/><path d="M9 2.5v2.5M15 2.5v2.5M9 19v2.5M15 19v2.5M2.5 9h2.5M2.5 15h2.5M19 9h2.5M19 15h2.5" stroke="#e5d9ff" stroke-width="1.6" stroke-linecap="round"/></svg>`
+};
+function partnerIcon(){ return D.condition===3 ? ALEX_SVG.replace('width="44" height="44"','width="34" height="34"') : ICON[D.condition]; }
+function partnerName(){ return D.condition===3 ? 'Alex' : (D.condition===2 ? 'AI system' : 'Partner'); }
+function hud(r, {from=null, status='', reveal=null}={}){
+  const cur=D.hist[D.hist.length-1], prev=from||cur;
+  const card=(side,id,icon,name,a,b,loss)=>`<div class="pcard ${side}" style="position:relative">
+      <div class="who"><span class="ic">${icon}</span><span>${name}</span></div>
+      <div class="coinline">${side==='right'?'':COIN_SVG}<span id="${id}n">${a}</span>${side==='right'?COIN_SVG:''}<small>/ ${START_COINS}</small></div>
+      <div class="gbar"><div class="ghost" id="${id}g" style="width:${a/START_COINS*100}%"></div><div class="fill" id="${id}f" style="width:${a/START_COINS*100}%"></div></div>
+      ${loss!=null?`<div class="pop" id="${id}l" style="${side==='right'?'left':'right'}:12px;top:8px">${loss?'−'+loss:'±0'}</div>`:''}
+    </div>`;
+  const lr = from ? D.rounds[D.rounds.length-1] : null;
+  return `<div class="arena">
+    <div class="arena-top">
+      ${card('left','hy',ICON.you,'You',prev.you,cur.you, lr?lr.lost:null)}
+      <div class="vs"><div class="rlab">ROUND</div><div class="rnum">${r}</div><div class="vsb">VS</div></div>
+      ${card('right','hp',partnerIcon(),partnerName(),prev.partner,cur.partner, lr?lr.partner_lost:null)}
+    </div>
+    ${reveal||''}
+    ${status?`<div class="arena-status">${status}</div>`:''}
+  </div>`;
+}
+function pcardHTML(side,id,icon,name,val,loss){
+  return `<div class="pcard ${side==='you'?'right':''}" style="position:relative">
+      <div class="who"><span class="ic">${icon}</span><span>${name}</span></div>
+      <div class="coinline">${COIN_SVG}<span id="${id}n">${val}</span><small>/ ${START_COINS}</small></div>
+      <div class="gbar"><div class="ghost" id="${id}g" style="width:${val/START_COINS*100}%"></div><div class="fill" id="${id}f" style="width:${val/START_COINS*100}%"></div></div>
+      ${loss!=null?`<div class="pop" id="${id}l" style="${side==='you'?'left':'right'}:4px;top:2px">${loss?'−'+loss:'±0'}</div>`:''}
+    </div>`;
+}
+function board(r, {left='', right='', from=null, sub=''}={}){
+  const cur=D.hist[D.hist.length-1], prev=from||cur;
+  const lr = from ? D.rounds[D.rounds.length-1] : null;
+  return `<div class="board">
+    <div class="roundbar"><div class="rn">ROUND ${r}</div><div class="rs">${sub||'You and your partner choose at the same time. Neither of you sees the other’s choice until both have chosen.'}</div></div>
+    <div class="cols">
+      <div class="col partner">${pcardHTML('partner','hp',partnerIcon(),partnerName(),prev.partner, lr?lr.partner_lost:null)}<div id="leftBody" style="display:flex;flex-direction:column;gap:12px;flex:1">${left}</div></div>
+      <div class="col you">${pcardHTML('you','hy',ICON.you,'You',prev.you, lr?lr.lost:null)}<div id="rightBody" style="display:flex;flex-direction:column;gap:12px;flex:1">${right}</div></div>
+    </div></div>`;
+}
+function choosingStatus(){
+  if(D.condition===3) return `<div class="bubble-row">${ava(36,true)}<div class="chat-bubble" style="flex:1"><div id="open"></div><div class="status-line" style="margin-top:6px">
+      <span class="dots"><span></span><span></span><span></span></span><span class="shimmer phrase" id="ph">${ALEX_PHRASES[0]}</span></div></div></div>`;
+  const txt = D.condition===1 ? 'Your partner is choosing…' : 'The AI system is choosing…';
+  return `<div class="status"><span class="mini-spin"></span><span>${txt}</span></div>`;
+}
+function animateHud(){
+  const cur=D.hist[D.hist.length-1], prev=D.hist[D.hist.length-2];
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    [['hy','you'],['hp','partner']].forEach(([id,k])=>{
+      const pct=cur[k]/START_COINS*100;
+      document.getElementById(id+'f').style.width=pct+'%'; document.getElementById(id+'g').style.width=pct+'%';
+      const l=document.getElementById(id+'l'); if(l) l.classList.add('go');
+      const nEl=document.getElementById(id+'n'); let v=prev[k];
+      const step=()=>{ if(v>cur[k]){ v--; nEl.textContent=v; setTimeout(step,70);} }; setTimeout(step,300);
+      // 掉落的金幣
+      const lost=prev[k]-cur[k], bar=document.getElementById(id+'f').parentElement, host=bar.parentElement;
+      for(let i=0;i<Math.min(lost,5);i++){
+        const c=document.createElement('div'); c.className='coin-drop'; c.innerHTML=COIN_SVG.replace(/width="22" height="22"/,'width="14" height="14"');
+        c.style.left=(k==='you'?(100-pct):pct)+'%'; c.style.top=(bar.offsetTop)+'px'; c.style.setProperty('--dx',(Math.random()*40-20)+'px');
+        c.style.animationDelay=(0.3+i*0.12)+'s'; host.appendChild(c); requestAnimationFrame(()=>c.classList.add('go'));
+      }
+    });
+  }));
+}
+function partnerShort(){ return D.condition===3 ? 'Alex' : (D.condition===2 ? 'AI system' : 'Partner'); }
+function ava(size, thinking=false){
+  return `<span class="ava${thinking?' thinking':''}">${ALEX_SVG.replace('width="44" height="44"',`width="${size}" height="${size}"`)}</span>`;
+}
+function hpRow(id, name, color, from, to, loss){
+  return `<div class="hp-row">
+    <div class="hp-name"><i style="background:${color}"></i>${name}</div>
+    <div class="hp"><div class="ghost" id="${id}g" style="width:${from/START_COINS*100}%"></div>
+      <div class="fill" id="${id}f" style="width:${from/START_COINS*100}%;background:${color}"></div></div>
+    <div class="hp-num"><b id="${id}n">${from}</b> / ${START_COINS}</div>
+    ${loss!=null?`<div class="float-loss" id="${id}l">${loss?'−'+loss:'±0'}</div>`:''}
+  </div>`;
+}
+function sparkline(){
+  const w=560,h=74,px=10,py=8, n=N_ROUNDS;
+  const X=i=>px+i*(w-2*px)/n, Y=v=>py+(1-v/START_COINS)*(h-2*py);
+  const line=(k,c)=>`<polyline fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${D.hist.map((p,i)=>`${X(i)},${Y(p[k])}`).join(' ')}"/>`+
+     D.hist.map((p,i)=>`<circle cx="${X(i)}" cy="${Y(p[k])}" r="3.2" fill="${c}" stroke="#fff" stroke-width="1.5"/>`).join('');
+  let grid=''; for(let i=0;i<=n;i++) grid+=`<line x1="${X(i)}" x2="${X(i)}" y1="${py}" y2="${h-py}" stroke="#f0efeb"/>`;
+  return `<div class="spark"><svg viewBox="0 0 ${w} ${h}" width="100%" preserveAspectRatio="none" role="img" aria-label="Coins over rounds">
+    ${grid}<line x1="${px}" x2="${w-px}" y1="${h-py}" y2="${h-py}" stroke="#dcdbd6"/>
+    ${line('partner',PARTNER_COLOR)}${line('you',YOU_COLOR)}</svg>
+    <div class="spark-cap"><span>Start</span><span><b style="color:${YOU_COLOR}">●</b> You &nbsp; <b style="color:${PARTNER_COLOR}">●</b> ${partnerName()} · coins over rounds</span><span>Round ${D.hist.length-1}</span></div></div>`;
+}
+function coinsPanel({animate=false, compact=false}={}){
+  const cur=D.hist[D.hist.length-1], prev=animate?D.hist[D.hist.length-2]:cur;
+  const lr = animate ? D.rounds[D.rounds.length-1] : null;
+  return `<div class="coins${compact?' compact':''}">
+    ${hpRow('hy','You',YOU_COLOR,prev.you,cur.you, animate?lr.lost:null)}
+    ${hpRow('hp',partnerShort(),PARTNER_COLOR,prev.partner,cur.partner, animate?lr.partner_lost:null)}
+    ${compact?'':sparkline()}
+  </div>`;
+}
+function animateCoins(){
+  const cur=D.hist[D.hist.length-1], prev=D.hist[D.hist.length-2];
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    [['hy','you'],['hp','partner']].forEach(([id,k])=>{
+      const pct = cur[k]/START_COINS*100;
+      document.getElementById(id+'f').style.width = pct+'%';
+      document.getElementById(id+'g').style.width = pct+'%';
+      const l=document.getElementById(id+'l'); if(l) l.classList.add('go');
+      const nEl=document.getElementById(id+'n'); let v=prev[k];
+      const step=()=>{ if(v>cur[k]){ v--; nEl.textContent=v; setTimeout(step,70);} }; setTimeout(step,250);
+    });
+  }));
+}
+async function streamInto(el, text, cps=38){
+  el.innerHTML=''; const words=text.split(' ');
+  const cur=document.createElement('span'); cur.className='cursor';
+  for(let i=0;i<words.length;i++){
+    const sp=document.createElement('span'); sp.className='wfade'; sp.textContent=(i?' ':'')+words[i];
+    el.appendChild(sp); el.appendChild(cur);
+    await sleep(Math.max(45, words[i].length*1000/cps) + Math.random()*40);
+  }
+  await sleep(250); cur.remove();
+}
+async function assignBalanced(pool){
+  // 向 Google Sheet 詢問目前哪一組完成人數最少；5 秒沒回應就改用隨機分派
+  try{
+    const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 5000);
+    const res = await fetch(SHEET_URL + '?action=assign&pool=' + pool.join(','), {signal: ctl.signal});
+    clearTimeout(t); const j = await res.json();
+    return pool.includes(+j.condition) ? +j.condition : null;
+  }catch(e){ return null; }
+}
+async function saveData(){
+  if(!SAVING_ON) return 'off';
+  const {cols,row} = rowData();
+  const body = JSON.stringify({cols, row});
+  try{ localStorage.setItem('pd_backup_'+D.pid, body); }catch(e){}
+  for(let attempt=0; attempt<3; attempt++){
+    try{
+      await fetch(SHEET_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body});
+      return 'ok';
+    }catch(e){ await sleep(1500); }
+  }
+  return 'fail';
+}
+function hookOpts(root=app){
+  root.querySelectorAll('.opt input, .scale input').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      root.querySelectorAll(`input[name="${inp.name}"]`).forEach(x=>x.parentElement.classList.toggle('sel', x.checked));
+    });
+  });
+}
+function val(name){ const x = app.querySelector(`input[name="${name}"]:checked`); return x ? x.value : null; }
+function likert(id, text, left='Strongly disagree', right='Strongly agree'){
+  let s = '';
+  for(let i=1;i<=7;i++) s += `<label><input type="radio" name="${id}" value="${i}">${i}</label>`;
+  return `<div class="likert"><div class="q-label">${text}</div><div class="scale">${s}</div>
+          <div class="anchors"><span>1 = ${left}</span><span>7 = ${right}</span></div></div>`;
+}
+function radios(id, label, options){
+  return `<div class="q"><div class="q-label">${label}</div><div class="opts">${
+    options.map(o=>`<label class="opt"><input type="radio" name="${id}" value="${o[0]}">${o[1]}</label>`).join('')
+  }</div></div>`;
+}
+
+/* ===================== 1. 開始（含研究者設定） ===================== */
+function screenStart(){
+  const hashCond = (location.hash.match(/^#c([1-3])$/)||[])[1];
+  render(`
+    <h1>Decision-Making Study</h1>
+    <h2>Consent</h2>
+    <p>You are invited to take part in a short study about decision-making. You will play a decision game with a partner and answer a few questions. It takes about 10–15 minutes.</p>
+    <p>Participation is voluntary, and you may stop at any time. Your responses are anonymous and will be used only for a class project. There are no known risks.</p>
+    <label class="opt" style="display:inline-flex;margin-top:6px"><input type="checkbox" id="consent">I am 18 or older and agree to take part in this study.</label>
+    <div class="actions"><button class="btn" id="go" disabled>Begin</button></div>
+
+    ${TEST_MODE?`<details class="researcher" open>
+      <summary>研究者設定（測試模式：只有網址加 #test 或 #c1–#c3 才會出現）</summary>
+      <p class="small" style="margin-top:10px">資料儲存：<span class="tag">${SAVING_ON?'已連到 Google Sheet（測試資料會標記 is_test = 1）':'尚未設定 SHEET_URL，資料不會儲存'}</span></p>
+      <p class="small" style="margin-top:10px">對手機制：<span class="tag">Tit-for-Two-Tats（受試者連續兩回合背叛，對手才背叛）</span></p>
+      <p class="small">分派方式：
+        <select id="condSel">
+          <option value="rand">從下方勾選的組別中隨機分派</option>
+          ${[1,2,3].map(i=>`<option value="${i}">指定：${i}. ${COND[i].label}</option>`).join('')}
+        </select></p>
+      <p class="small" style="margin-bottom:4px">隨機分派包含的組別：</p>
+      <div class="small">${[1,2,3].map(i=>`<label style="display:block"><input type="checkbox" class="poolBox" value="${i}" checked> ${i}. ${COND[i].label}</label>`).join('')}</div>
+      <p class="small muted" style="margin-top:8px">也可以在網址後加 #c1（人類）、#c2（中性 AI）、#c3（Alex）直接指定組別。</p>
+    </details>`:''}`);
+  if(hashCond) document.getElementById('condSel').value = hashCond;
+  document.getElementById('consent').onchange = e => { document.getElementById('go').disabled = !e.target.checked; };
+  document.getElementById('go').onclick = async ()=>{
+    document.getElementById('go').disabled = true;
+    D.consent = true; D.is_test = TEST_MODE ? 1 : 0;
+    const sel = document.getElementById('condSel');
+    if(TEST_MODE && sel && sel.value!=='rand'){
+      D.condition = +sel.value; D.condition_assigned_by = 'researcher';
+    } else {
+      let pool = TEST_MODE ? [...document.querySelectorAll('.poolBox:checked')].map(x=>+x.value) : [1,2,3];
+      if(!pool.length) pool = [1,2,3];
+      D.random_pool = pool.join('|');
+      const balanced = (!TEST_MODE && SAVING_ON) ? await assignBalanced(pool) : null;
+      D.condition = balanced || pool[Math.floor(Math.random()*pool.length)];
+      D.condition_assigned_by = balanced ? 'balanced' : 'random';
+    }
+    screenInstructions();
+  };
+}
+
+/* ===================== 2. 遊戲說明＋理解檢查 ===================== */
+function screenInstructions(err=false){
+  render(`
+    <h1>How the game works</h1>
+    <p>You will play several rounds of a decision game with the same partner. In each round, you and your partner each choose <b>Cooperate</b> or <b>Defect</b> at the same time, without knowing what the other will choose.</p>
+    <p>You start with <b>${START_COINS} coins</b>. In each round, you may lose some coins depending on both choices:</p>
+    <table class="matrix">
+      <tr><th></th><th>Partner cooperates</th><th>Partner defects</th></tr>
+      <tr><th>You cooperate</th><td>You lose 2 &nbsp;|&nbsp; Partner loses 2</td><td>You lose 5 &nbsp;|&nbsp; Partner loses 0</td></tr>
+      <tr><th>You defect</th><td>You lose 0 &nbsp;|&nbsp; Partner loses 5</td><td>You lose 4 &nbsp;|&nbsp; Partner loses 4</td></tr>
+    </table>
+    <p>Your partner will make its decisions based on how the game unfolds. After each round, you will see your partner's choice and how many coins you have left.</p>
+    <p><b>Your goal is to keep as many coins as possible by the end of the game.</b></p>
+    <h2>Quick check</h2>
+    ${radios('cq1','1. If you cooperate and your partner defects, how many coins do you lose?',[[0,'0'],[2,'2'],[4,'4'],[5,'5']])}
+    ${radios('cq2','2. If you both cooperate, how many coins do you lose?',[[0,'0'],[2,'2'],[4,'4'],[5,'5']])}
+    ${err?'<div class="err">At least one answer is incorrect. Please check the table and try again.</div>':''}
+    <div class="actions"><button class="btn" id="go">Continue</button></div>`);
+  hookOpts();
+  document.getElementById('go').onclick = ()=>{
+    D.comprehension_attempts++;
+    if(val('cq1')==='5' && val('cq2')==='2') screenIntro();
+    else screenInstructions(true);
+  };
+}
+
+/* ===================== 3. 對手介紹 ===================== */
+/* Alex 開場閒聊：固定腳本，不談策略、不承諾合作 */
+const SMALLTALK = [
+  {q:"Before we start, how's your day going so far?",
+   opts:[["Pretty good","Glad to hear it!"],["It's okay","Fair enough. Some days are like that."],["A bit busy","Thanks for making time for this, then."]]},
+  {q:"Have you ever played a game like this before?",
+   opts:[["Yes","Nice, then this should feel familiar."],["Not really","No worries, it's simple once we start."],["Not sure","That's okay, we'll figure it out as we go."]]}
+];
+async function alexSay(chat, text){
+  const row=document.createElement('div'); row.className='msg';
+  row.innerHTML=`<span class="ava">${ALEX_SVG.replace('width="44" height="44"','width="40" height="40"')}</span><div class="chat-bubble"><span class="dots"><span></span><span></span><span></span></span></div>`;
+  chat.appendChild(row); const b=row.querySelector('.chat-bubble');
+  await sleep(900+Math.random()*500); await streamInto(b, text);
+}
+function userChoose(chat, opts){
+  return new Promise(res=>{
+    const wrap=document.createElement('div'); wrap.className='chips';
+    opts.forEach(([label],i)=>{ const c=document.createElement('button'); c.className='chip'; c.textContent=label;
+      c.onclick=()=>{ wrap.remove(); const m=document.createElement('div'); m.className='msg me'; m.innerHTML=`<div class="ub"></div>`; m.querySelector('.ub').textContent=label; chat.appendChild(m); res(i); };
+      wrap.appendChild(c); });
+    chat.appendChild(wrap);
+  });
+}
+async function smallTalk(){
+  const chat=document.getElementById('smalltalk'); D.smalltalk=[];
+  for(const st of SMALLTALK){
+    await alexSay(chat, st.q);
+    const i=await userChoose(chat, st.opts); D.smalltalk.push(st.opts[i][0]);
+    await alexSay(chat, st.opts[i][1]);
+  }
+  await alexSay(chat, "Alright, I'm ready whenever you are.");
+}
+async function screenIntro(){
+  if(D.condition===1){
+    render(`<h1>Finding a partner…</h1><div class="spinner"></div><p class="center muted">Please wait while we match you with another participant.</p>`);
+    await sleep(3500 + Math.random()*3000);
+  }
+  render(`
+    <h1>${D.condition===1?'Partner found':'Your partner'}</h1>
+    ${COND[D.condition].intro}
+    <p>You will play with this same partner for the whole game.</p>
+    <div class="actions"><button class="btn" id="go">Continue</button></div>`);
+  document.getElementById('go').onclick = screenPreTrust;
+  if(D.condition===3){
+    const g=document.getElementById('greet'), btn=document.getElementById('go'); btn.disabled=true;
+    await sleep(1100); await streamInto(g, "Hi, I'm Alex! I'm looking forward to playing this game with you.");
+    await smallTalk(); btn.disabled=false;
+  }
+}
+
+/* ===================== 4. 遊戲前信任量表 ===================== */
+function screenTrust(phase, err=false){
+  const pre = phase==='pre';
+  render(`
+    ${partnerTag()}
+    <h1>${pre?'Before you start':'Now that the game is over'}</h1>
+    <p>Please indicate how much you agree with each statement about your partner.</p>
+    ${TRUST_ITEMS.map(t=>likert(t.id, t.text)).join('')}
+    ${err?'<div class="err">Please answer all statements.</div>':''}
+    <div class="actions"><button class="btn" id="go">${pre?'Start the game':'Continue'}</button></div>`);
+  hookOpts();
+  document.getElementById('go').onclick = ()=>{
+    const ans = {}; let ok = true;
+    TRUST_ITEMS.forEach(t=>{ const v = val(t.id); if(!v) ok=false; ans[t.id]=v?+v:null; });
+    if(!ok) return screenTrust(phase, true);
+    if(pre){ D.pre = ans; screenRound(1); } else { D.postTrust = ans; screenPost(); }
+  };
+}
+function screenPreTrust(){ screenTrust('pre'); }
+
+/* ===================== 5. 回合 ===================== */
+function partnerMove(r){
+  // Tit-for-Two-Tats：只有受試者前兩回合都背叛，對手才背叛
+  if(r<=2) return 'C';
+  return (D.rounds[r-2].choice==='D' && D.rounds[r-3].choice==='D') ? 'D' : 'C';
+}
+function screenRound(r){
+  const t0 = performance.now();
+  const right = `<div class="light">
+      <div class="q-label">How likely is your partner to cooperate this round?</div>
+      <div class="slider-box">
+        <div class="slider-val untouched" id="sv">Move the slider to answer</div>
+        <input type="range" min="0" max="100" step="1" value="50" id="exp">
+        <div class="anchors"><span>0%</span><span>100%</span></div>
+      </div>
+      <div class="q-label" style="margin-top:14px">Choose your move:</div>
+      <div class="gcards" style="margin-top:4px">
+        <button class="gcard" data-c="C" disabled><div class="t">COOPERATE</div></button>
+        <button class="gcard" data-c="D" disabled><div class="t">DEFECT</div></button>
+      </div>
+      <p class="small muted" style="margin:8px 0 0" id="hint">Answer the question above first.</p>
+    </div>`;
+  const left = `${choosingStatus()}<div class="spacer"></div><div class="facedown wait"><div class="t">Choosing…</div><div class="s">${partnerName()==='Partner'?'Your partner’s':partnerName()+'’s'} move will be revealed after you both choose</div></div>`;
+  render(board(r, {left, right}));
+  const sl = document.getElementById('exp'), sv = document.getElementById('sv');
+  let touched = false;
+  const onTouch = ()=>{
+    touched = true; sv.textContent = sl.value + '%'; sv.classList.remove('untouched');
+    app.querySelectorAll('.gcard').forEach(b=>b.disabled=false); document.getElementById('hint').textContent = '';
+  };
+  sl.addEventListener('input', onTouch); sl.addEventListener('change', onTouch); sl.addEventListener('pointerdown', ()=>setTimeout(onTouch,0));
+  let openMsg='', iv=null;
+  if(D.condition===3){
+    openMsg = pick(ALEX_OPEN,'open').replace('{r}', r);
+    (async()=>{ await sleep(500); const el=document.getElementById('open'); if(el) await streamInto(el, openMsg); })();
+    const ph=document.getElementById('ph'); let k=0;
+    iv=setInterval(()=>{ k=(k+1)%ALEX_PHRASES.length; ph.style.opacity=0; setTimeout(()=>{ph.textContent=ALEX_PHRASES[k]; ph.style.opacity=1;},220); }, 1100);
+  }
+  app.querySelectorAll('.gcard').forEach(b=>b.onclick = async ()=>{
+    if(!touched) return;
+    app.querySelectorAll('.gcard').forEach(bb=>bb.disabled=true);
+    const me = b.dataset.c, partner = partnerMove(r);
+    const [p1,p2] = LOSS[me+partner];
+    const wait = THINK_MIN + Math.random()*(THINK_MAX-THINK_MIN);
+    const before = D.hist[D.hist.length-1];
+    D.total -= p1; D.partner_total -= p2;
+    D.rounds.push({round:r, expect:+sl.value, choice:me, partner:partner, lost:p1, partner_lost:p2, coins_left:D.total,
+                   partner_coins_left:D.partner_total, wait_ms:Math.round(wait),
+                   rt_choice_ms: Math.round(performance.now()-t0), alex_open: openMsg});
+    // 你的選擇蓋牌鎖定；對手繼續「同時」選擇
+    document.getElementById('rightBody').innerHTML =
+      `<div class="spacer"></div><div class="facedown"><div class="t">Your move is locked in</div><div class="s">Waiting for ${partnerName()==='Partner'?'your partner':partnerName()} to choose…</div></div>`;
+    await sleep(wait);
+    if(iv) clearInterval(iv);
+    const fd = app.querySelector('.col.partner .facedown');
+    if(fd){ fd.classList.remove('wait'); fd.innerHTML = `<div class="t">${partnerName()==='Partner'?'Your partner':partnerName()} has chosen</div><div class="s">Revealing both moves…</div>`; }
+    const st = app.querySelector('.col.partner .status, .col.partner .status-line'); if(st) st.style.visibility='hidden';
+    await sleep(700);
+    D.hist.push({you:D.total, partner:D.partner_total});
+    screenResult(r, before);
+  });
+}
+function screenResult(r, before){
+  const x = D.rounds[r-1];
+  let alexBlock='';
+  if(D.condition===3){
+    x.alex_reply = pick(ALEX_REPLY[x.choice+x.partner],'rep_'+x.choice+x.partner) + ' ' + pick(ALEX_CLOSE,'close');
+    alexBlock = `<div class="bubble-row">${ava(36)}<div class="chat-bubble" style="flex:1">
+      <details class="thought"><summary>Thought for ${Math.max(1,Math.round(x.wait_ms/1000))}s</summary><div class="tbody">${esc(pick(ALEX_THOUGHT,'th'))}</div></details>
+      <div id="reply"></div></div></div>`;
+  }
+  const flip = (lab,v,delay)=>`<div class="flip"><div class="in" style="animation-delay:${delay}s"><div class="lab">${lab}</div><div class="val">${W(v).toUpperCase()}</div></div></div>`;
+  render(`
+    ${board(r, {from: before, sub:'Both moves revealed',
+        left: `${alexBlock}<div class="spacer"></div>${flip(partnerName()+' chose', x.partner, 0)}`,
+        right: `<div class="spacer"></div>${flip('You chose', x.choice, 0)}`})}
+    <div class="coins" style="margin-top:12px">${sparkline()}</div>
+    <div class="actions"><button class="btn" id="go">${r<N_ROUNDS?'Next round':'Continue'}</button></div>`);
+  animateHud();
+  document.getElementById('go').onclick = ()=> r<N_ROUNDS ? screenRound(r+1) : screenGameOver();
+  if(D.condition===3){ streamInto(document.getElementById('reply'), x.alex_reply); }
+}
+function screenGameOver(){
+  render(`<h1>The game is over</h1>
+    <p>You kept <b>${D.total}</b> of your ${START_COINS} coins.</p>
+    <p>Please answer a few final questions.</p>
+    <div class="actions"><button class="btn" id="go">Continue</button></div>`);
+  document.getElementById('go').onclick = ()=>screenTrust('post');
+}
+
+/* ===================== 6. 遊戲後問卷 ===================== */
+function screenPost(err=false){
+  render(`
+    <h1>A few final questions</h1>
+    ${radios('mc_partner','1. Who was your partner in this game?',
+      [['human','Another student'],['ai_neutral','An AI system'],['ai_anthro','Alex, an AI system'],['unsure','Not sure']])}
+    ${likert('anthro','2. My partner felt like a person.')}
+    ${radios('suspicion','3. During the game, did you doubt the information you were given about your partner?',[['no','No'],['yes','Yes']])}
+    <div class="q"><div class="q-label">If yes, why? (optional)</div><input type="text" id="susp_text" style="width:100%"></div>
+    ${radios('simple_rule','4. Did your partner seem to follow a simple rule when making choices?',[['no','No'],['yes','Yes'],['unsure','Not sure']])}
+    ${err?'<div class="err">Please answer questions 1–4.</div>':''}
+    <div class="actions"><button class="btn" id="go">Submit</button></div>`);
+  hookOpts();
+  document.getElementById('go').onclick = ()=>{
+    const p = {mc_partner:val('mc_partner'), anthro:val('anthro'), suspicion:val('suspicion'), simple_rule:val('simple_rule'),
+      suspicion_text:document.getElementById('susp_text').value.trim()};
+    if(!p.mc_partner||!p.anthro||!p.suspicion||!p.simple_rule) return screenPost(true);
+    D.post = p; D.finished_at = new Date().toISOString();
+    render(`<h1>Saving your responses…</h1><div class="spinner"></div><p class="center muted">Please do not close this page.</p>`);
+    saveData().then(st => { D.save_status = st; screenDebrief(); });
+  };
+}
+
+/* ===================== 7. Debrief＋資料 ===================== */
+function rowData(){
+  const cols = ['pid','mechanism','condition','condition_label','assigned_by','random_pool','comprehension_attempts',
+    ...TRUST_ITEMS.map(t=>'pre_'+t.id),'pre_ability_mean','pre_benevolence_mean'];
+  const row = [D.pid, MECH, D.condition, COND[D.condition].key, D.condition_assigned_by, D.random_pool||'', D.comprehension_attempts,
+    ...TRUST_ITEMS.map(t=>D.pre[t.id])];
+  const m = (src,dim) => { const v = TRUST_ITEMS.filter(t=>t.dim===dim).map(t=>src[t.id]); return (v.reduce((a,b)=>a+b,0)/v.length).toFixed(2); };
+  row.push(m(D.pre,'ability'), m(D.pre,'benevolence'));
+  TRUST_ITEMS.forEach(t=>{ cols.push('post_'+t.id); row.push(D.postTrust[t.id]); });
+  cols.push('post_ability_mean','post_benevolence_mean'); row.push(m(D.postTrust,'ability'), m(D.postTrust,'benevolence'));
+  D.rounds.forEach(x=>{
+    ['expect','choice','partner','lost','coins_left','partner_coins_left','wait_ms','rt_choice_ms','alex_open','alex_reply'].forEach(k=>{ cols.push(`r${x.round}_${k}`); row.push(x[k]); });
+  });
+  const coop = D.rounds.filter(x=>x.choice==='C').length / D.rounds.length;
+  cols.push('coop_rate','coins_left_final'); row.push(coop.toFixed(3), D.total);
+  Object.entries(D.post).forEach(([k,v])=>{ cols.push('check_'+k); row.push(v); });
+  cols.push('started_at','finished_at'); row.push(D.started_at, D.finished_at);
+  cols.push('smalltalk_1','smalltalk_2','is_test','save_note'); row.push((D.smalltalk||[])[0]||'', (D.smalltalk||[])[1]||'', D.is_test, 'web');
+  return {cols, row: row.map(v => v ?? '')};
+}
+function csv(){
+  const {cols,row} = rowData();
+  const q = s => { s = String(s ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
+  return cols.map(q).join(',') + '\n' + row.map(q).join(',');
+}
+function screenDebrief(){
+  const mechText = 'cooperated unless you defected two rounds in a row (a strategy called "Tit-for-Two-Tats")';
+  render(`
+    <h1>Thank you!</h1>
+    <p>This study looks at how the way a partner is presented affects people's trust and cooperation.</p>
+    <p><b>All partners in this study were automated.</b> There was no other student, and your partner was not a large language model. Every participant played against the same simple computer program, which ${mechText}. Depending on your group, this program was presented as another student, as an AI system, or as an AI system named Alex with an avatar and a first-person voice. We could not tell you this beforehand because knowing it would change how people play.</p>
+    <p>If you have questions, or would like your data removed, please contact the research team.</p>
+    ${D.save_status==='fail'?`<div class="err">We could not save your responses automatically. Please check your internet connection and press the button below.<div style="margin-top:8px"><button class="btn secondary" id="retry">Try again</button></div></div>`:''}
+    <p class="muted small">Your participant code: ${D.pid}</p>
+    ${TEST_MODE?`<details class="researcher" open>
+      <summary>研究者檢視：本次資料（正式施測時隱藏）</summary>
+      <p class="small" style="margin-top:10px">機制：<b>Tit-for-Two-Tats</b>　信任（前→後）：<b>${(TRUST_ITEMS.reduce((a,t)=>a+D.pre[t.id],0)/4).toFixed(2)} → ${(TRUST_ITEMS.reduce((a,t)=>a+D.postTrust[t.id],0)/4).toFixed(2)}</b>　組別：<b>${D.condition}. ${COND[D.condition].key}</b>　剩餘金幣：<b>${D.total}</b>　理解檢查嘗試次數：<b>${D.comprehension_attempts}</b></p>
+      <table class="summary">
+        <tr><th>回合</th><th>預期合作 %</th><th>受試者</th><th>對手</th><th>失去</th><th>剩餘</th></tr>
+        ${D.rounds.map(x=>`<tr><td>${x.round}</td><td>${x.expect}</td><td>${x.choice}</td><td>${x.partner}</td><td>−${x.lost}</td><td>${x.coins_left}</td></tr>`).join('')}
+      </table>
+      <p class="small">CSV（一位受試者一列，可貼進 Excel／SPSS）：</p>
+      <textarea id="csv" readonly>${csv()}</textarea>
+      <div class="row" style="margin-top:8px"><button class="btn secondary" id="copy">複製 CSV</button><span class="small muted" id="copied"></span>
+        <button class="btn secondary" id="again" style="margin-left:auto">重新開始</button></div>
+      <p class="small muted">儲存狀態：${D.save_status}</p>
+    </details>`:''}`);
+  const rb = document.getElementById('retry');
+  if(rb) rb.onclick = async ()=>{ rb.disabled = true; rb.textContent = 'Saving…'; D.save_status = await saveData(); screenDebrief(); };
+  if(!TEST_MODE) return;
+  document.getElementById('copy').onclick = async ()=>{
+    const ta = document.getElementById('csv'), msg = document.getElementById('copied');
+    try{ await navigator.clipboard.writeText(ta.value); msg.textContent='已複製'; }
+    catch(e){ ta.select(); msg.textContent='請按 Ctrl/Cmd + C 複製已選取的文字'; }
+  };
+  document.getElementById('again').onclick = ()=>location.reload();
+}
+
+screenStart();
+</script>
+</body>
+</html>
